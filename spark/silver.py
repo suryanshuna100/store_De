@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
 import glob
+from pyspark.sql.functions import round as spark_round
 
 files = glob.glob(
     "data/raw/weather/year=*/month=*/day=*/hour=*/weather.json"
@@ -63,8 +64,14 @@ df = (
     .withColumn("month", month("ingestion_ts"))
     .withColumn("day", dayofmonth("ingestion_ts"))
     .withColumn("hour", hour("ingestion_ts"))
-    .withColumn("temperature_f",    round((col("temperature") * 9/5) + 32,2))
-)
+    .withColumn(
+    "temperature_f",
+    spark_round(
+        (col("temperature") * 9/5) + 32,
+        2
+    )
+))
+
 df.groupBy("weather").count().show()
 
 df.orderBy(col("temperature").desc()).show()

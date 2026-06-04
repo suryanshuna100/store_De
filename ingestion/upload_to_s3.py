@@ -1,19 +1,29 @@
+
 import os
 import boto3
 import logging
-from dotenv import load_dotenv
-from datetime import datetime
 
-# Configure logging
+from dotenv import load_dotenv
+from datetime import datetime, UTC
+
+# ---------------------------------
+# Logging Configuration
+# ---------------------------------
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+# ---------------------------------
+# Load Environment Variables
+# ---------------------------------
 load_dotenv(override=True)
 
 BUCKET_NAME = os.getenv("S3_BUCKET")
 
+# ---------------------------------
+# Create S3 Client
+# ---------------------------------
 s3 = boto3.client(
     "s3",
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
@@ -21,19 +31,19 @@ s3 = boto3.client(
     region_name=os.getenv("AWS_REGION")
 )
 
-# Current timestamp
-now = datetime.now()
+# ---------------------------------
+# Current UTC Timestamp
+# ---------------------------------
+now = datetime.now(UTC)
 
 year = now.strftime("%Y")
 month = now.strftime("%m")
 day = now.strftime("%d")
 hour = now.strftime("%H")
 
-file_name = now.strftime(
-    "%Y%m%d_%H0000_weather.json"
-)
-
-# Local file path
+# ---------------------------------
+# Local Weather File
+# ---------------------------------
 LOCAL_FILE = os.path.join(
     "data",
     "raw",
@@ -42,49 +52,67 @@ LOCAL_FILE = os.path.join(
     f"month={month}",
     f"day={day}",
     f"hour={hour}",
-    file_name
+    "weather.json"
 )
 
-# S3 Bronze path
+# ---------------------------------
+# S3 Bronze Path
+# ---------------------------------
 S3_FILE = (
     f"bronze/weather/"
     f"year={year}/"
     f"month={month}/"
     f"day={day}/"
     f"hour={hour}/"
-    f"{file_name}"
+    f"weather.json"
 )
 
-try:
+# ---------------------------------
+# Upload Function
+# ---------------------------------
+def upload_to_s3():
 
-    logging.info("Starting upload process...")
+    if not os.path.exists(LOCAL_FILE):
 
-    logging.info(
-        f"Source file: {LOCAL_FILE}"
-    )
+        logging.error(
+            f"Local file not found: {LOCAL_FILE}"
+        )
 
-    logging.info(
-        f"Destination: s3://{BUCKET_NAME}/{S3_FILE}"
-    )
+        return
 
-    s3.upload_file(
-        LOCAL_FILE,
-        BUCKET_NAME,
-        S3_FILE
-    )
+    try:
 
-    logging.info(
-        "Upload completed successfully"
-    )
+        logging.info(
+            "Starting upload process..."
+        )
 
-except FileNotFoundError:
+        logging.info(
+            f"Source file: {LOCAL_FILE}"
+        )
 
-    logging.error(
-        f"Local file not found: {LOCAL_FILE}"
-    )
+        logging.info(
+            f"Destination: s3://{BUCKET_NAME}/{S3_FILE}"
+        )
 
-except Exception as e:
+        s3.upload_file(
+            LOCAL_FILE,
+            BUCKET_NAME,
+            S3_FILE
+        )
 
-    logging.error(
-        f"Upload failed: {e}"
-    )
+        logging.info(
+            "Upload completed successfully"
+        )
+
+    except Exception as e:
+
+        logging.error(
+            f"Upload failed: {e}"
+        )
+
+
+# ---------------------------------
+# Main
+# ---------------------------------
+if __name__ == "__main__":
+    upload_to_s3()
