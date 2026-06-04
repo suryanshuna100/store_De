@@ -21,24 +21,51 @@ s3 = boto3.client(
     region_name=os.getenv("AWS_REGION")
 )
 
-today = datetime.now().strftime("%Y-%m-%d")
+# Current timestamp
+now = datetime.now()
 
-LOCAL_FILE = (
-    f"data/raw/weather/ingestion_date={today}/weather.json"
+year = now.strftime("%Y")
+month = now.strftime("%m")
+day = now.strftime("%d")
+hour = now.strftime("%H")
+
+file_name = now.strftime(
+    "%Y%m%d_%H0000_weather.json"
 )
 
+# Local file path
+LOCAL_FILE = os.path.join(
+    "data",
+    "raw",
+    "weather",
+    f"year={year}",
+    f"month={month}",
+    f"day={day}",
+    f"hour={hour}",
+    file_name
+)
+
+# S3 Bronze path
 S3_FILE = (
-    f"raw/weather/ingestion_date={today}/weather.json"
+    f"bronze/weather/"
+    f"year={year}/"
+    f"month={month}/"
+    f"day={day}/"
+    f"hour={hour}/"
+    f"{file_name}"
 )
-#AWS automatically creates the folder structure. 
-# The S3 key is just a string that can contain slashes to mimic folders, 
-# but they are not actual directories. When you upload a file with a key 
-# that includes slashes, S3 will display it as if it's in a folder structure, 
-# but it's all stored as a single object in the bucket.
+
 try:
-    logging.info(f"Starting upload process...")
-    logging.info(f"Source file: {LOCAL_FILE}")
-    logging.info(f"Destination: s3://{BUCKET_NAME}/{S3_FILE}")
+
+    logging.info("Starting upload process...")
+
+    logging.info(
+        f"Source file: {LOCAL_FILE}"
+    )
+
+    logging.info(
+        f"Destination: s3://{BUCKET_NAME}/{S3_FILE}"
+    )
 
     s3.upload_file(
         LOCAL_FILE,
@@ -46,10 +73,18 @@ try:
         S3_FILE
     )
 
-    logging.info("Upload completed successfully")
+    logging.info(
+        "Upload completed successfully"
+    )
 
 except FileNotFoundError:
-    logging.error(f"Local file not found: {LOCAL_FILE}")
+
+    logging.error(
+        f"Local file not found: {LOCAL_FILE}"
+    )
 
 except Exception as e:
-    logging.error(f"Upload failed: {e}")
+
+    logging.error(
+        f"Upload failed: {e}"
+    )

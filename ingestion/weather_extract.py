@@ -6,6 +6,7 @@ import os
 
 from dotenv import load_dotenv
 
+
 # Load environment variables
 load_dotenv()
 
@@ -64,21 +65,41 @@ def save_data(records):
         logging.warning("No records to save")
         return
 
-    today = datetime.now(UTC).strftime("%Y-%m-%d")
+    now = datetime.now(UTC)
+
+    year = now.strftime("%Y")
+    month = now.strftime("%m")
+    day = now.strftime("%d")
+    hour = now.strftime("%H")
 
     path = os.path.join(
         OUTPUT_DIR,
-        f"ingestion_date={today}"
+        f"year={year}",
+        f"month={month}",
+        f"day={day}",
+        f"hour={hour}"
     )
 
     os.makedirs(path, exist_ok=True)
 
-    file_path = os.path.join(path, "weather.json")
+    file_path = os.path.join(
+        path,
+        "weather.json"
+    )
+
+    # Prevent duplicate ingestion within same hour
+    if os.path.exists(file_path):
+        logging.warning(
+            f"Weather data already exists for hour={hour}. Skipping ingestion."
+        )
+        return
 
     with open(file_path, "w") as f:
         json.dump(records, f, indent=4)
 
-    logging.info(f"Saved {len(records)} records to {file_path}")
+    logging.info(
+        f"Saved {len(records)} records to {file_path}"
+    )
 
 
 def main():

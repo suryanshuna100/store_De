@@ -7,3 +7,5 @@ data/*
 
 venv/
 .DS_Store
+spark_practise/
+notebook/
