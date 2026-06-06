@@ -46,7 +46,7 @@ hour = now.strftime("%H")
 # ---------------------------------
 LOCAL_FILE = os.path.join(
     "data",
-    "raw",
+    "bronze",
     "weather",
     f"year={year}",
     f"month={month}",

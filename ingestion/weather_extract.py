@@ -26,7 +26,7 @@ CITIES = [
     "Hyderabad"
 ]
 
-OUTPUT_DIR = "data/raw/weather"
+OUTPUT_DIR = "data/bronze/weather"
 
 
 def fetch_weather(city):
