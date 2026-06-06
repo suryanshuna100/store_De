@@ -102,3 +102,5 @@ silver_df.show(truncate=False)
 print("===== SILVER SCHEMA =====")
 
 silver_df.printSchema()
+
+#changes made
